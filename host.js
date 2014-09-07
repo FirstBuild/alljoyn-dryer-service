@@ -72,6 +72,12 @@ greenBean.connect("laundry", function (laundry) {
     format: "UInt8"
   });
 
+  laundry.light = laundry.erd({
+    erd: 0x2020,
+    endian: "big",
+    format: "UInt8"
+  });
+
   laundry.endOfCycle.subscribe(function (value) {
     console.log("eoc value: " + value)
   	if(value === 1) {
@@ -81,15 +87,23 @@ greenBean.connect("laundry", function (laundry) {
 
   bus.registerSignalHandler(chatObject, function(msg, info){
     msg = msg[0]
-    console.log('Received message: ' + msg)
+    msg.split(';').forEach(function(msg) {
+      console.log('Received message: ' + msg)
 
-    if(msg === 'start') {
-      laundry.remoteStart.write(1);
-    }
-    else if(msg === 'air fluff') {
-      console.log('setting air fluff');
-      laundry.cycle.write(10);
-    }
+      if(msg === 'start') {
+        laundry.remoteStart.write(1);
+      }
+      else if(msg === 'air fluff') {
+        console.log('setting air fluff');
+        laundry.cycle.write(10);
+      }
+      else if(msg === 'light on') {
+        laundry.light.write(1);
+      }
+      else if(msg === 'light off') {
+        laundry.light.write(0);
+      }
+    })
   }, inter, "Chat");
 });
 
