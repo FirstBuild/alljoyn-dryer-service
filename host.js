@@ -52,8 +52,24 @@ console.log("RequestName "+bus.requestName(advertisedName));
 console.log("BindSessionPort "+bus.bindSessionPort(27, portListener));
 console.log("AdvertiseName "+bus.advertiseName(advertisedName));
 
+function sendData(data) {
+  var sys = require('sys')
+  var exec = require('child_process').exec;
+  var child;
 
+  child = exec('curl -i -X PUT https://api-m2x.att.com/v1/feeds/1dd63f44f5d94bdbfde7a26926c30502/streams/end-of-cycle-times/value -H "X-M2X-KEY: 7f0431d9f10fa14f1e620a9faf5906f5" -H "Content-Type: application/json" -d \'{ "value": ' + data + ' }\'',
+    function (error, stdout, stderr) {
+    sys.print('stdout: ' + stdout);
+    sys.print('stderr: ' + stderr);
+    if (error !== null) {
+      console.log('exec error: ' + error);
+    }
+  });
+}
 
+function sendTimeStamp() {
+  sendData(new Date().getTime());
+}
 
 var greenBean = require("green-bean");
 
@@ -82,6 +98,7 @@ greenBean.connect("laundry", function (laundry) {
     console.log("eoc value: " + value)
   	if(value === 1) {
       chatObject.signal(null, sessionId, inter, "Chat", 'end of cycle');
+      sendTimeStamp();
   	}
   });
 
