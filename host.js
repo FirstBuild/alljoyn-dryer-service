@@ -52,24 +52,25 @@ console.log("RequestName "+bus.requestName(advertisedName));
 console.log("BindSessionPort "+bus.bindSessionPort(27, portListener));
 console.log("AdvertiseName "+bus.advertiseName(advertisedName));
 
-function sendData(data) {
-  var sys = require('sys')
-  var exec = require('child_process').exec;
-  var child;
 
-  child = exec('curl -i -X PUT https://api-m2x.att.com/v1/feeds/1dd63f44f5d94bdbfde7a26926c30502/streams/end-of-cycle-times/value -H "X-M2X-KEY: 7f0431d9f10fa14f1e620a9faf5906f5" -H "Content-Type: application/json" -d \'{ "value": ' + data + ' }\'',
-    function (error, stdout, stderr) {
-    sys.print('stdout: ' + stdout);
-    sys.print('stderr: ' + stderr);
-    if (error !== null) {
-      console.log('exec error: ' + error);
-    }
-  });
+
+var M2X = require("m2x");
+var exec = require("child_process").exec;
+
+var API_KEY = "7f0431d9f10fa14f1e620a9faf5906f5";
+var FEED    = "1dd63f44f5d94bdbfde7a26926c30502";
+
+var m2x_client = new M2X(API_KEY);
+
+function sendDataToM2X(data) {
+  m2x_client.feeds.updateStream(FEED, "end-of-cycle-times", {value: data.toString()});
 }
 
 function sendTimeStamp() {
-  sendData(new Date().getTime());
+  sendDataToM2X(new Date().getTime());
 }
+
+
 
 var greenBean = require("green-bean");
 
