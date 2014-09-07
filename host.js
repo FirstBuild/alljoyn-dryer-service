@@ -70,6 +70,19 @@ function sendTimeStamp() {
   sendDataToM2X(new Date().getTime());
 }
 
+function sendSubCycleDataToM2X(data) {
+  m2x_client.feeds.updateStream(FEED, "sub-cycles", {value: data.toString()});
+}
+
+function sendSelectedCycleDataToM2X(data) {
+  m2x_client.feeds.updateStream(FEED, "selected-cycles", {value: data.toString()});
+}
+
+function sendTimeStamp() {
+  sendDataToM2X(new Date().getTime());
+}
+
+
 
 
 var greenBean = require("green-bean");
@@ -95,12 +108,33 @@ greenBean.connect("laundry", function (laundry) {
     format: "UInt8"
   });
 
+
+  var notRunningSubCycle = 0;
+  var lastSubCycle = notRunningSubCycle;
+  laundry.machineSubCycle.subscribe(function(value) {
+    console.log("sub-cycle: " + value);
+
+    if(value !== notRunningSubCycle && lastSubCycle === notRunningSubCycle) {
+      console.log("cycle started");
+    }
+
+    lastSubCycle = value;
+
+    sendSubCycleDataToM2X(value);
+  });
+
   laundry.endOfCycle.subscribe(function (value) {
     console.log("eoc value: " + value)
   	if(value === 1) {
+      console.log("cycle ended");
       chatObject.signal(null, sessionId, inter, "Chat", 'end of cycle');
       sendTimeStamp();
   	}
+  });
+
+  laundry.cycleSelected.subscribe(function(value) {
+    console.log("cycle selected: " + value);
+    sendSelectedCycleDataToM2X(value);
   });
 
   bus.registerSignalHandler(chatObject, function(msg, info){
